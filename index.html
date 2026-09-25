@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payload Hub Pro & Subdomain Scanner</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: { brand: { dtac: '#0077ff', true: '#ff0033', ais: '#76b900' } } } }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    code, pre, .font-mono { font-family: 'Fira Code', monospace; }
+    .custom-scrollbar::-webkit-scrollbar { height: 5px; width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+    .glass-panel { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen pb-16 transition-colors duration-200">
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none bg-white dark:bg-slate-900 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-xs">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-500 text-base"></i>
+    <span id="toastMsg" class="font-medium">Action completed</span>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="glass-panel border-b border-slate-200 dark:border-slate-800/80 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center font-black text-xl text-white shadow-lg">⚡</div>
+        <div>
+          <h1 class="font-extrabold text-lg tracking-wide">PAYLOAD<span class="text-sky-500">HUB</span></h1>
+          <p class="text-[11px] text-slate-500 font-medium">Advanced 50+ Methods & Subdomain Scanner</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="toggleTheme()" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-400 flex items-center justify-center transition">
+          <i id="themeIcon" class="fa-solid fa-sun"></i>
+        </button>
+        <button id="adminLogoutBtn" onclick="logoutAdmin()" class="hidden w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center transition" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+        <button id="adminStatusBtn" onclick="handleAdminIconClick()" class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition" title="Admin Control">
+          <i class="fa-solid fa-lock text-amber-500" id="lockIcon"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Tab Navigation -->
+    <div class="max-w-7xl mx-auto px-4 border-t border-slate-200 dark:border-slate-800/60 flex items-center gap-2 overflow-x-auto custom-scrollbar py-2">
+      <button onclick="switchTab('hub')" id="tabBtn-hub" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-sky-500 text-white shadow-md">
+        <i class="fa-solid fa-database"></i> Payload Hub
+      </button>
+      <button onclick="switchTab('generator')" id="tabBtn-generator" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+        <i class="fa-solid fa-bolt text-amber-500"></i> Generator (50+)
+      </button>
+      <button onclick="switchTab('scanner')" id="tabBtn-scanner" class="tab-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+        <i class="fa-solid fa-globe text-indigo-500"></i> Subdomain Scanner
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 mt-6">
+    
+    <!-- ========================================== -->
+    <!-- SECTION 1: PAYLOAD HUB                     -->
+    <!-- ========================================== -->
+    <section id="section-hub">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div class="grid grid-cols-4 gap-2 w-full bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <button onclick="filterSim('ALL')" class="filter-btn py-2.5 rounded-xl text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm transition-all" data-sim="ALL">All</button>
+          <button onclick="filterSim('Dtac')" class="filter-btn py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-center gap-2 transition-all" data-sim="Dtac">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXIB1stuxiDc1L4kBzwhYIMgrw-_uw78xbw0gX7ob0RA&s=10" class="w-6 h-6 rounded-full object-cover shadow-sm"> Dtac
+          </button>
+          <button onclick="filterSim('True')" class="filter-btn py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-center gap-2 transition-all" data-sim="True">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmwX8pfzoxcMnEJBBQXx15N6Wv6e5ZWsVbhVHeoMEA0Q&s=10" class="w-6 h-6 rounded-full object-cover shadow-sm"> True
+          </button>
+          <button onclick="filterSim('Ais')" class="filter-btn py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex items-center justify-center gap-2 transition-all" data-sim="Ais">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHUEr7TzZLCDSayxzU-7K8odP5ZohzIdo66-F6AH5TM2N28E98di2RnJo&s=10" class="w-6 h-6 rounded-full object-cover shadow-sm"> AIS
+          </button>
+        </div>
+        <button id="addBtn" onclick="openAddModal()" class="hidden w-full md:w-auto px-5 py-3 bg-sky-500 hover:bg-sky-600 text-white rounded-2xl text-sm font-bold shadow-lg transition flex justify-center items-center whitespace-nowrap">
+          <i class="fa-solid fa-plus mr-2"></i> Add Payload
+        </button>
+      </div>
+      <div id="payloadContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 2: ADVANCED GENERATOR (50+ Types)  -->
+    <!-- ========================================== -->
+    <section id="section-generator" class="hidden">
+      <!-- (Generator UI remains identical) -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 mb-6 shadow-sm">
+        <h2 class="text-lg font-extrabold flex items-center gap-2 mb-4"><span class="text-amber-500">⚡</span> Advanced Payload Generator</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Bug Host / SNI (Primary)</label>
+            <input type="text" id="genHost" value="www.oltopupws.ais.co.th" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-sm font-mono focus:border-amber-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Dual Host (Secondary / Alert)</label>
+            <input type="text" id="genHost2" value="beta.zoom.us" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-sm font-mono focus:border-amber-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Category Filter</label>
+            <select id="genCategory" onchange="renderGeneratedPayloads()" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2.5 text-sm outline-none">
+              <option value="ALL">All 50+ Methods</option>
+              <option value="CUSTOM">Custom (PATCH, ALERT, SPLIT)</option>
+              <option value="WEBSOCKET">WebSocket & Cloudflare</option>
+              <option value="STANDARD">Standard & Connect</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="renderGeneratedPayloads()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition">
+          <i class="fa-solid fa-bolt mr-2"></i> Generate 50+ Methods
+        </button>
+      </div>
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold text-slate-700 dark:text-slate-300">Generated Results: <span id="genCount" class="text-amber-500">0</span></h3>
+      </div>
+      <div id="generatedList" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- SECTION 3: DIRECT BROWSER SCANNER (NEW)    -->
+    <!-- ========================================== -->
+    <section id="section-scanner" class="hidden">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 mb-6 shadow-sm">
+        <h2 class="text-lg font-extrabold flex items-center gap-2 mb-2"><span class="text-indigo-500">🔍</span> Direct Domain Scanner</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Proxy များကို လုံးဝအသုံးမပြုဘဲ လုံခြုံရေးမြင့်မားသော API များ (AlienVault, CertSpotter) မှတစ်ဆင့် တိုက်ရိုက်ရှာဖွေပေးပါမည်။</p>
+        
+        <div class="flex flex-col md:flex-row gap-3">
+          <input type="text" id="scanDomainInput" placeholder="ဥပမာ - ais.co.th" class="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-mono focus:border-indigo-500 outline-none" onkeydown="if(event.key==='Enter') startDirectScan()">
+          <button onclick="startDirectScan()" id="scanBtn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-radar"></i> Start Scan
+          </button>
+        </div>
+        
+        <div class="flex gap-2 mt-4 overflow-x-auto pb-1">
+          <span class="text-xs text-slate-500 py-1 font-bold">Quick Scan:</span>
+          <button onclick="document.getElementById('scanDomainInput').value='dtac.co.th'; startDirectScan()" class="px-3 py-1 rounded-lg bg-blue-500/10 text-blue-500 text-xs font-bold hover:bg-blue-500/20">dtac.co.th</button>
+          <button onclick="document.getElementById('scanDomainInput').value='truecorp.co.th'; startDirectScan()" class="px-3 py-1 rounded-lg bg-red-500/10 text-red-500 text-xs font-bold hover:bg-red-500/20">truecorp.co.th</button>
+          <button onclick="document.getElementById('scanDomainInput').value='ais.co.th'; startDirectScan()" class="px-3 py-1 rounded-lg bg-green-500/10 text-green-500 text-xs font-bold hover:bg-green-500/20">ais.co.th</button>
+        </div>
+      </div>
+
+      <!-- Loading Status -->
+      <div id="scanStatus" class="hidden bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 rounded-xl p-4 mb-4 text-center text-sm font-bold">
+        <i class="fa-solid fa-circle-notch fa-spin mr-2"></i> တိုက်ရိုက် API များမှ ရှာဖွေနေပါသည် (ခဏစောင့်ပါ)...
+      </div>
+
+      <div class="flex justify-between items-end mb-3">
+        <h3 class="font-bold text-slate-700 dark:text-slate-300">Found Subdomains: <span id="subCount" class="text-indigo-500">0</span></h3>
+        <input type="text" id="filterSub" oninput="renderSubdomains()" placeholder="Filter results..." class="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs outline-none w-48">
+      </div>
+
+      <div id="subdomainList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div class="col-span-full py-10 text-center text-slate-500 text-xs font-medium">
+          Domain တစ်ခု ရိုက်ထည့်ပြီး Scan စတင်ပါ
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modals remain unchanged for Payload Hub -->
+  <div id="loginModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl relative">
+      <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4"><i class="fa-solid fa-lock text-amber-500 mr-2"></i> Admin Login</h3>
+      <input type="password" id="adminPasswordInput" placeholder="Enter Password" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 font-mono mb-4" onkeydown="if(event.key === 'Enter') submitAdminPassword()">
+      <div class="flex gap-2">
+        <button onclick="toggleAdminLoginModal(false)" class="flex-1 py-2.5 bg-slate-200 dark:bg-slate-800 rounded-xl text-xs font-semibold">Cancel</button>
+        <button onclick="submitAdminPassword()" class="flex-1 py-2.5 bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-xl text-xs">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="editorModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center mb-5">
+        <h3 id="editorModalTitle" class="text-lg font-bold">Add New Payload</h3>
+        <button onclick="closeEditorModal()" class="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <input type="hidden" id="editPayloadId">
+      <div class="space-y-4 text-sm">
+        <div>
+          <label class="block font-medium mb-2">SIM Operator</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="cursor-pointer"><input type="radio" name="simSelect" value="Dtac" checked class="peer sr-only"><div class="text-center py-2 border rounded-xl peer-checked:border-blue-500 peer-checked:bg-blue-500/10 flex flex-col items-center gap-1 border-slate-200 dark:border-slate-700"><span class="text-xs font-bold text-slate-500">Dtac</span></div></label>
+            <label class="cursor-pointer"><input type="radio" name="simSelect" value="True" class="peer sr-only"><div class="text-center py-2 border rounded-xl peer-checked:border-red-500 peer-checked:bg-red-500/10 flex flex-col items-center gap-1 border-slate-200 dark:border-slate-700"><span class="text-xs font-bold text-slate-500">True</span></div></label>
+            <label class="cursor-pointer"><input type="radio" name="simSelect" value="Ais" class="peer sr-only"><div class="text-center py-2 border rounded-xl peer-checked:border-green-500 peer-checked:bg-green-500/10 flex flex-col items-center gap-1 border-slate-200 dark:border-slate-700"><span class="text-xs font-bold text-slate-500">AIS</span></div></label>
+          </div>
+        </div>
+        <div><label class="block font-medium mb-1">Payload Name</label><input type="text" id="payloadNameInput" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-sky-500"></div>
+        <div><label class="block font-medium mb-1">Method</label><input type="text" id="payloadMethodInput" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-sky-500"></div>
+        <div class="flex gap-2">
+          <div class="flex-1"><label class="block font-medium mb-1">Proxy / IP</label><input type="text" id="proxyIpInput" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-sky-500"></div>
+          <div class="w-1/3"><label class="block font-medium mb-1">Port</label><input type="text" id="proxyPortInput" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-sky-500"></div>
+        </div>
+        <div><label class="block font-medium mb-1">Payload Info</label><textarea id="payloadInfoInput" rows="5" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-sky-500 font-mono text-xs whitespace-pre"></textarea></div>
+      </div>
+      <div class="flex justify-end gap-2 mt-6">
+        <button onclick="closeEditorModal()" class="px-4 py-2 bg-slate-200 dark:bg-slate-800 rounded-xl text-xs font-semibold">Cancel</button>
+        <button id="saveBtn" onclick="savePayload()" class="px-5 py-2 bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-xl text-xs">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = "https://payload.activevpn2026.workers.dev";
+    let ADMIN_PASSWORD = localStorage.getItem("ADMIN_PASS") || "";
+    let allPayloads = [];
+    let currentFilter = "ALL";
+    let foundSubdomains = [];
+
+    function init() {
+      applyTheme(localStorage.getItem("theme") || "dark");
+      updateAdminStateUI();
+      fetchPayloads();
+      renderGeneratedPayloads();
+    }
+
+    function switchTab(tab) {
+      ['hub', 'generator', 'scanner'].forEach(t => {
+        document.getElementById(`section-${t}`).classList.toggle('hidden', t !== tab);
+        const btn = document.getElementById(`tabBtn-${t}`);
+        if(t === tab) {
+          btn.className = `tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-white shadow-md ${t==='hub'?'bg-sky-500':(t==='generator'?'bg-amber-500':'bg-indigo-500')}`;
+        } else {
+          btn.className = "tab-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2";
+        }
+      });
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.classList.toggle("dark", theme === "dark");
+      document.getElementById("themeIcon").className = theme === "dark" ? "fa-solid fa-sun text-amber-400" : "fa-solid fa-moon text-slate-600";
+      localStorage.setItem("theme", theme);
+    }
+    function toggleTheme() { applyTheme(document.documentElement.classList.contains("dark") ? "light" : "dark"); }
+    
+    function showToast(msg, isErr=false) {
+      const t = document.getElementById("toast");
+      document.getElementById("toastMsg").innerText = msg;
+      document.getElementById("toastIcon").className = isErr ? "fa-solid fa-circle-exclamation text-rose-500" : "fa-solid fa-circle-check text-emerald-500";
+      t.classList.remove("translate-y-24", "opacity-0");
+      setTimeout(() => t.classList.add("translate-y-24", "opacity-0"), 3000);
+    }
+
+    function copyText(txt, msg="Copied!") {
+      const textarea = document.createElement("textarea");
+      textarea.value = txt; 
+      textarea.style.position = "fixed"; 
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select(); 
+      try { document.execCommand('copy'); showToast(msg); } 
+      catch (err) { showToast("Copy failed", true); }
+      document.body.removeChild(textarea);
+    }
+    function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]); }
+
+    function updateAdminStateUI() {
+      document.getElementById("lockIcon").className = ADMIN_PASSWORD ? "fa-solid fa-unlock text-emerald-500" : "fa-solid fa-lock text-amber-500";
+      document.getElementById("addBtn").classList.toggle("hidden", !ADMIN_PASSWORD);
+      document.getElementById("adminLogoutBtn").classList.toggle("hidden", !ADMIN_PASSWORD);
+    }
+    function handleAdminIconClick() { if(!ADMIN_PASSWORD) toggleAdminLoginModal(true); }
+    function logoutAdmin() { if(confirm("Logout?")) { ADMIN_PASSWORD=""; localStorage.removeItem("ADMIN_PASS"); updateAdminStateUI(); fetchPayloads(); } }
+    function toggleAdminLoginModal(show) { document.getElementById("loginModal").classList.toggle("hidden", !show); }
+    function submitAdminPassword() {
+      const p = document.getElementById("adminPasswordInput").value.trim();
+      if(p) { ADMIN_PASSWORD = p; localStorage.setItem("ADMIN_PASS", p); toggleAdminLoginModal(false); updateAdminStateUI(); fetchPayloads(); showToast("Admin mode active"); }
+    }
+
+    async function fetchPayloads() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/payloads`);
+        allPayloads = await res.json(); renderHub();
+      } catch (e) { document.getElementById("payloadContainer").innerHTML = `<p class="text-rose-500">Failed to load data.</p>`; }
+    }
+    
+    function filterSim(sim) { 
+      currentFilter = sim; 
+      
+      // Update UI for active/inactive tabs
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        if (btn.dataset.sim === sim) {
+          btn.classList.add('bg-slate-100', 'dark:bg-slate-800', 'text-slate-800', 'dark:text-white', 'shadow-sm');
+          btn.classList.remove('text-slate-500', 'hover:bg-slate-50', 'dark:hover:bg-slate-800/50');
+        } else {
+          btn.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-800', 'dark:text-white', 'shadow-sm');
+          btn.classList.add('text-slate-500', 'hover:bg-slate-50', 'dark:hover:bg-slate-800/50');
+        }
+      });
+
+      renderHub(); 
+    }
+    
+    function renderHub() {
+      const list = currentFilter === "ALL" ? allPayloads : allPayloads.filter(p => p.sim_operator === currentFilter);
+      const conf = { 
+        Dtac: { img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXIB1stuxiDc1L4kBzwhYIMgrw-_uw78xbw0gX7ob0RA&s=10', clr: 'text-blue-500 bg-blue-500/10 border-blue-500/20' }, 
+        True: { img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSmwX8pfzoxcMnEJBBQXx15N6Wv6e5ZWsVbhVHeoMEA0Q&s=10', clr: 'text-red-500 bg-red-500/10 border-red-500/20' }, 
+        Ais: { img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHUEr7TzZLCDSayxzU-7K8odP5ZohzIdo66-F6AH5TM2N28E98di2RnJo&s=10', clr: 'text-green-500 bg-green-500/10 border-green-500/20' } 
+      };
+      
+      document.getElementById("payloadContainer").innerHTML = list.map(p => {
+        const c = conf[p.sim_operator] || conf.Dtac;
+        return `
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between hover:border-sky-500/50 transition duration-200">
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <div class="flex items-center gap-2 px-2 py-1 rounded-lg border ${c.clr} text-xs font-bold">
+                <img src="${c.img}" class="w-5 h-5 rounded-full object-cover"> ${p.sim_operator}
+              </div>
+              ${ADMIN_PASSWORD ? `
+                <div class="flex gap-2">
+                  <button onclick='openEditModal(${JSON.stringify(p).replace(/'/g, "&apos;")})' class="text-amber-500 text-xs"><i class="fa-solid fa-pen"></i></button>
+                  <button onclick="deletePayload(${p.id})" class="text-rose-500 text-xs"><i class="fa-solid fa-trash"></i></button>
+                </div>` : ''}
+            </div>
+            <h3 class="font-bold text-sm mb-1 text-slate-800 dark:text-white">${escapeHtml(p.payload_name)}</h3>
+            <span class="text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-sky-500 font-mono border border-slate-200 dark:border-slate-700">${escapeHtml(p.payload_method)}</span>
+            
+            ${(p.proxy_ip || p.proxy_port) ? `
+              <div class="mt-3 p-2 bg-slate-50 dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800 text-[10px] font-mono flex flex-col gap-1.5">
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-500">IP: <span class="text-slate-800 dark:text-slate-200 font-bold">${p.proxy_ip||'-'}</span></span>
+                  ${p.proxy_ip ? `<button onclick="copyText('${p.proxy_ip}')" class="text-sky-500 hover:bg-sky-500/10 px-1.5 py-0.5 rounded transition"><i class="fa-regular fa-copy"></i></button>` : ''}
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-500">Port: <span class="text-indigo-500 dark:text-indigo-400 font-bold">${p.proxy_port||'-'}</span></span>
+                  ${p.proxy_port ? `<button onclick="copyText('${p.proxy_port}')" class="text-indigo-500 hover:bg-indigo-500/10 px-1.5 py-0.5 rounded transition"><i class="fa-regular fa-copy"></i></button>` : ''}
+                </div>
+              </div>` : ''}
+              
+            <div class="relative group mt-3">
+              <pre class="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg text-[10px] text-slate-600 dark:text-slate-400 font-mono overflow-x-auto border border-slate-200 dark:border-slate-800 max-h-32 whitespace-pre-wrap">${escapeHtml(p.payload_info)}</pre>
+              <button onclick="copyText(this.previousElementSibling.innerText)" class="absolute top-2 right-2 bg-slate-800 text-white w-7 h-7 flex items-center justify-center rounded-md text-[10px] opacity-0 group-hover:opacity-100 transition shadow-lg"><i class="fa-regular fa-copy"></i></button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function openAddModal() { document.getElementById("editPayloadId").value=""; document.getElementById("editorModalTitle").innerText="Add Payload"; document.getElementById("payloadNameInput").value=""; document.getElementById("payloadMethodInput").value=""; document.getElementById("payloadInfoInput").value=""; document.getElementById("proxyIpInput").value=""; document.getElementById("proxyPortInput").value=""; document.getElementById("editorModal").classList.remove("hidden"); }
+    function openEditModal(p) { document.getElementById("editPayloadId").value=p.id; document.getElementById("editorModalTitle").innerText="Edit Payload"; document.querySelector(`input[name="simSelect"][value="${p.sim_operator}"]`).checked=true; document.getElementById("payloadNameInput").value=p.payload_name; document.getElementById("payloadMethodInput").value=p.payload_method; document.getElementById("proxyIpInput").value=p.proxy_ip||""; document.getElementById("proxyPortInput").value=p.proxy_port||""; document.getElementById("payloadInfoInput").value=p.payload_info; document.getElementById("editorModal").classList.remove("hidden"); }
+    function closeEditorModal() { document.getElementById("editorModal").classList.add("hidden"); }
+    async function savePayload() {
+      const id = document.getElementById("editPayloadId").value;
+      const payload = { sim_operator: document.querySelector('input[name="simSelect"]:checked').value, payload_name: document.getElementById("payloadNameInput").value, payload_method: document.getElementById("payloadMethodInput").value, proxy_ip: document.getElementById("proxyIpInput").value, proxy_port: document.getElementById("proxyPortInput").value, payload_info: document.getElementById("payloadInfoInput").value };
+      const url = id ? `${API_BASE_URL}/api/payloads/${id}` : `${API_BASE_URL}/api/payloads`;
+      await fetch(url, { method: id?"PUT":"POST", headers: {"Content-Type":"application/json", "X-Admin-Password": ADMIN_PASSWORD}, body: JSON.stringify(payload) });
+      closeEditorModal(); fetchPayloads(); showToast("Saved Successfully");
+    }
+    async function deletePayload(id) { if(confirm("Delete this?")) { await fetch(`${API_BASE_URL}/api/payloads/${id}`, {method: "DELETE", headers: {"X-Admin-Password": ADMIN_PASSWORD}}); fetchPayloads(); showToast("Deleted"); } }
+
+    function renderGeneratedPayloads() {
+      const host = document.getElementById("genHost").value || "www.oltopupws.ais.co.th";
+      const host2 = document.getElementById("genHost2").value || "beta.zoom.us";
+      const cat = document.getElementById("genCategory").value;
+      
+      const templates = [
+        { cat: "CUSTOM", name: "AIS / Custom PATCH Split", badge: "bg-pink-500/10 text-pink-500 border-pink-500/30", text: `GET /cdn-cgi/rum HTTP/1.1\nHost: ${host}\nUser-Agent: [ua] [crlf][crlf]\n[split]\nPATCH / HTTP/1.1\nHost: [host]\nHost: ${host}\nUser-Agent: [ua]\nConnection: Upgrade\nUpgrade: websocket [crlf][crlf]` },
+        { cat: "STANDARD", name: "Direct CONNECT", badge: "bg-sky-500/10 text-sky-500 border-sky-500/30", text: `CONNECT [host_port] HTTP/1.1[crlf]Host: ${host}[crlf]Connection: Keep-Alive[crlf][crlf]` }
+      ];
+
+      const methods = ["GET", "POST", "PUT", "HEAD", "OPTIONS"];
+      const splits = ["[split]", "[instant_split]"];
+      let count = templates.length;
+      methods.forEach(m => {
+        splits.forEach(s => {
+          if(count < 55) {
+             templates.push({
+               cat: "CUSTOM", name: `Auto Generate: ${m} + ${s}`, badge: "bg-slate-500/10 text-slate-500 border-slate-500/30",
+               text: `${m} http://${host}/ HTTP/1.1[crlf]Host: ${host}[crlf]${s}CONNECT [host_port] HTTP/1.1[crlf]Host: ${host2}[crlf][crlf]`
+             });
+             count++;
+          }
+        });
+      });
+
+      const filtered = cat === "ALL" ? templates : templates.filter(t => t.cat === cat);
+      document.getElementById("genCount").innerText = filtered.length;
+      document.getElementById("generatedList").innerHTML = filtered.map((t, i) => `
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between group">
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${t.badge}">${t.cat}</span>
+              <button onclick="copyText(this.parentElement.nextElementSibling.nextElementSibling.innerText)" class="text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded text-[10px] font-bold hover:bg-amber-500 hover:text-white transition"><i class="fa-solid fa-copy"></i></button>
+            </div>
+            <h4 class="font-bold text-xs text-slate-800 dark:text-slate-200 mb-2">${i+1}. ${t.name}</h4>
+            <pre class="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 text-[10px] font-mono text-slate-600 dark:text-slate-400 whitespace-pre-wrap select-all max-h-32 custom-scrollbar">${escapeHtml(t.text)}</pre>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 🚀 NEW: Ultra-Resilient Frontend Scanner (NO CORS PROXY REQUIRED)
+    async function startDirectScan() {
+      const domain = document.getElementById("scanDomainInput").value.trim().toLowerCase();
+      if(!domain) return showToast("Domain ရိုက်ထည့်ပါ!", true);
+      
+      const statusEl = document.getElementById("scanStatus");
+      statusEl.classList.remove("hidden");
+      document.getElementById("subdomainList").innerHTML = "";
+      document.getElementById("subCount").innerText = "0";
+      foundSubdomains = [];
+
+      let subs = new Set();
+      
+      // We run multiple completely FREE and CORS-friendly APIs in parallel
+      const fetchPromises = [
+        // Source 1: CertSpotter (Native CORS Support)
+        fetch(`https://api.certspotter.com/v1/issuances?domain=${domain}&include_subdomains=true&expand=dns_names`)
+          .then(r => r.json())
+          .then(data => {
+            if(Array.isArray(data)) {
+              data.forEach(cert => {
+                if(cert.dns_names) cert.dns_names.forEach(name => {
+                  let cleanName = name.replace(/^\*\./, '').toLowerCase();
+                  if(cleanName.endsWith(domain)) subs.add(cleanName);
+                });
+              });
+            }
+          }).catch(e => console.log("CertSpotter err")),
+
+        // Source 2: AlienVault OTX (Native CORS Support)
+        fetch(`https://otx.alienvault.com/api/v1/indicators/domain/${domain}/passive_dns`)
+          .then(r => r.json())
+          .then(data => {
+            if(data.passive_dns) {
+              data.passive_dns.forEach(r => {
+                if(r.hostname) {
+                  let cleanName = r.hostname.replace(/^\*\./, '').toLowerCase();
+                  if(cleanName.endsWith(domain)) subs.add(cleanName);
+                }
+              });
+            }
+          }).catch(e => console.log("OTX err")),
+
+        // Source 3: Cloudflare DoH (Native CORS Support) - Just checking the root domain
+        fetch(`https://cloudflare-dns.com/dns-query?name=${domain}&type=A`, { headers: { 'Accept': 'application/dns-json' } })
+          .then(r => r.json())
+          .then(data => { if(data.Status === 0) subs.add(domain); })
+          .catch(e => console.log("CF err"))
+      ];
+
+      // Wait for all APIs to finish gathering
+      await Promise.allSettled(fetchPromises);
+      
+      foundSubdomains = Array.from(subs).sort();
+
+      if(foundSubdomains.length > 0) {
+        renderSubdomains();
+        showToast(`Subdomains ${foundSubdomains.length} ခု တွေ့ရှိပါသည်`);
+      } else {
+        document.getElementById("subdomainList").innerHTML = `<div class="col-span-full py-10 text-center text-rose-500 text-xs font-bold">API များ အလုပ်မလုပ်ပါ သို့မဟုတ် Subdomain မရှိပါ။</div>`;
+        showToast("ရှာဖွေမှု မအောင်မြင်ပါ။", true);
+      }
+
+      statusEl.classList.add("hidden");
+    }
+
+    function renderSubdomains() {
+      const filter = document.getElementById("filterSub").value.toLowerCase();
+      const filtered = foundSubdomains.filter(s => s.toLowerCase().includes(filter));
+      document.getElementById("subCount").innerText = filtered.length;
+      
+      if(filtered.length === 0) return;
+      
+      document.getElementById("subdomainList").innerHTML = filtered.map(sub => `
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 shadow-sm flex flex-col justify-between items-start group hover:border-indigo-500 transition">
+          <div class="flex justify-between w-full items-center mb-2">
+            <span class="text-indigo-600 dark:text-indigo-400 text-[10px] bg-indigo-500/10 px-2 py-0.5 rounded font-bold">Subdomain</span>
+            <button onclick="copyText('${sub}')" class="text-slate-400 hover:text-indigo-500 transition"><i class="fa-regular fa-copy"></i></button>
+          </div>
+          <h4 class="font-mono text-[11px] font-bold text-slate-800 dark:text-slate-200 break-all select-all mb-3">${sub}</h4>
+          <div class="w-full flex gap-2">
+            <button onclick="checkIpAndCdn('${sub}', this)" class="flex-1 py-1.5 bg-slate-100 dark:bg-slate-800 text-[9px] font-bold rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition">Scan IP/CDN/Port</button>
+            <button onclick="document.getElementById('genHost').value='${sub}'; switchTab('generator'); renderGeneratedPayloads(); showToast('Sent to Generator')" class="px-2 py-1.5 bg-indigo-500 text-white text-[9px] font-bold rounded shadow hover:bg-indigo-400"><i class="fa-solid fa-bolt"></i></button>
+          </div>
+          <div class="cdn-result w-full mt-2 text-[10px] font-mono hidden bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800"></div>
+        </div>
+      `).join('');
+    }
+
+    // 🚀 NEW: Local CDN Detector via Browser Native Fetch
+    async function checkIpAndCdn(sub, btnElem) {
+      const resultDiv = btnElem.parentElement.nextElementSibling;
+      btnElem.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Checking...`;
+      
+      try {
+        // Use Cloudflare DoH (DNS over HTTPS) because it fully supports CORS in browser
+        const res = await fetch(`https://cloudflare-dns.com/dns-query?name=${sub}&type=A`, {
+            headers: { 'Accept': 'application/dns-json' }
+        });
+        const data = await res.json();
+        
+        let ip = "N/A", cdn = "Direct Server", isOpen = false;
+        
+        if (data.Answer && data.Answer.length > 0) {
+          const aRec = data.Answer.find(a => a.type === 1);
+          if (aRec) {
+              ip = aRec.data;
+              isOpen = true; // IP found = Active
+          }
+          
+          // Smart Local CDN Matcher by IP Prefix (Since we can't read Headers via CORS)
+          if(ip.startsWith("104.") || ip.startsWith("172.6") || ip.startsWith("188.114.") || ip.startsWith("162.158.") || ip.startsWith("198.41.")) {
+              cdn = "Cloudflare CDN";
+          } else if(ip.startsWith("13.") || ip.startsWith("18.") || ip.startsWith("52.") || ip.startsWith("54.") || ip.startsWith("99.") || ip.startsWith("108.")) {
+              cdn = "AWS CloudFront";
+          } else if(ip.startsWith("151.101.") || ip.startsWith("199.232.") || ip.startsWith("146.75.")) {
+              cdn = "Fastly CDN";
+          } else if(ip.startsWith("23.") || ip.startsWith("104.7") || ip.startsWith("104.8")) {
+              cdn = "Akamai CDN";
+          }
+        }
+        
+        const openStr = isOpen ? `<span class="text-emerald-500 font-bold">OPEN (Active IP)</span>` : `<span class="text-rose-500 font-bold">CLOSED (No DNS)</span>`;
+        
+        resultDiv.innerHTML = `
+          <div class="flex justify-between mb-1"><span class="text-slate-500">IP:</span> <span class="font-bold text-slate-800 dark:text-slate-200">${ip}</span></div>
+          <div class="flex justify-between mb-1"><span class="text-slate-500">CDN:</span> <span class="font-bold text-amber-500">${cdn}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Status:</span> <span>${openStr}</span></div>
+        `;
+        resultDiv.classList.remove("hidden");
+        btnElem.style.display = "none";
+      } catch(e) {
+        btnElem.innerHTML = "Retry Scan";
+        showToast("DNS Lookup Failed", true);
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
